@@ -1,0 +1,13 @@
+vendor/
+site/needle.js
+site/needle.wasm
+site/needle3.cact
+__pycache__/
+.venv/
+# AT-6b: built from data/*.skel and the dataset at its pin by `python dataset.py fill` (cup.py runs it)
+site/home_names.json
+site/labels.json
+site/nofacts_cases.json
+site/replay_*.json
+# readings quote the dataset's commands; they live in the private kiln repo, territories/smith/c53_readings/ (AT-6b)
+readings/

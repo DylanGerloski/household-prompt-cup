@@ -1,0 +1,26 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>AT-5 check</title></head>
+<body><pre id="log">loading</pre>
+<script type="module">
+// Runs every case in nofacts_cases.json (the Python gate's own verdicts, build_nofacts.py) through nofacts.js and
+// counts each difference in hit rows, exit code or printed reason. window.RESULT.differ must be 0.
+import { verdict } from "./nofacts.js";
+try {
+  const home = await (await fetch("home_names.json")).json();
+  const cases = await (await fetch("nofacts_cases.json")).json();
+  const key = rows => JSON.stringify(rows.map(r => r.map(String)).sort((a, b) => {
+    const x = JSON.stringify(a), y = JSON.stringify(b); return x < y ? -1 : x > y ? 1 : 0; }));
+  const differ = [], exits = {};
+  for (const c of cases) {
+    const v = verdict(c.text, home);
+    exits[v.exit] = (exits[v.exit] || 0) + 1;
+    const why = [];
+    if (v.exit !== c.exit) why.push(`exit ${v.exit} vs ${c.exit}`);
+    if (key(v.rows) !== key(c.rows)) why.push("rows");
+    if (v.lines[v.lines.length - 1] !== c.last_line) why.push("reason");
+    if (why.length) differ.push({ id: c.id, text: c.text, why, page: v.rows, python: c.rows });
+  }
+  window.RESULT = { n: cases.length, exits, differ: differ.length, first: differ.slice(0, 8) };
+  document.getElementById("log").textContent = JSON.stringify(window.RESULT, null, 1);
+} catch (e) { window.RESULT = { page_error: String(e && e.stack || e) }; }
+</script></body></html>

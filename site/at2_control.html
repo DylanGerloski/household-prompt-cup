@@ -1,0 +1,13 @@
+<!doctype html><meta charset="utf-8"><title>AT-2 control</title>
+<script>
+// AT-2's negative control: three off-machine attempts at a reserved name that never resolves (RFC 2606 .invalid).
+// run_page.py must list all three in off_machine, or its net has a hole. None can leave: the route aborts them.
+(async () => {
+  const w = new Worker(URL.createObjectURL(new Blob(['fetch("http://worker.at2-control.invalid/").catch(()=>0);postMessage(1)'])));
+  await new Promise(r => w.onmessage = r);
+  await fetch("http://page.at2-control.invalid/").catch(() => 0);
+  try { new WebSocket("ws://socket.at2-control.invalid/"); } catch (e) {}
+  await new Promise(r => setTimeout(r, 1500));
+  window.RESULT = { control: true };
+})();
+</script>

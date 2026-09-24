@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><title>needle wasm AT-1</title>
+<script src="needle.js"></script>
+<script type="module">
+import { loadNeedle } from "./engine.js";
+try {
+  const n = await loadNeedle(".");
+  const tools = [{ name: "turn_on_light", description: "Turn on a light", parameters: { type: "object",
+    properties: { name: { type: "string", description: "light name" } }, required: ["name"] } }];
+  window.RESULT = n.complete("", tools, "turn on the kitchen light");
+} catch (e) { window.RESULT = { page_error: String(e && e.stack || e) }; }
+</script>

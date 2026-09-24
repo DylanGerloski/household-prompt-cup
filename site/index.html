@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompt Cup</title>
+<style>
+:root { --bg:#fbfaf7; --fg:#1d1c1a; --mute:#6b6862; --line:#dedad2; --accent:#2f5d50; --warn:#8a5a00; --bad:#9b2c2c; --card:#fff; }
+@media (prefers-color-scheme: dark) { :root { --bg:#161614; --fg:#ecebe6; --mute:#a3a09a; --line:#34322e; --accent:#7fbfa9; --warn:#e0b25c; --bad:#e58a8a; --card:#1e1d1b; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, sans-serif; }
+main { max-width:760px; margin:0 auto; padding:32px 16px 64px; }
+h1 { font-size:1.6rem; margin:0 0 4px; }
+p.lead { color:var(--mute); margin:0 0 24px; }
+textarea { width:100%; min-height:9em; padding:12px; font:14px/1.45 ui-monospace, monospace; color:var(--fg);
+  background:var(--card); border:1px solid var(--line); border-radius:8px; resize:vertical; }
+button { margin-top:12px; padding:10px 18px; font:inherit; font-weight:600; color:#fff; background:var(--accent);
+  border:0; border-radius:8px; cursor:pointer; }
+button:disabled { opacity:.5; cursor:default; }
+.gate { margin-top:16px; padding:12px; border-radius:8px; border:1px solid var(--line); background:var(--card);
+  font:13px/1.45 ui-monospace, monospace; white-space:pre-wrap; display:none; }
+.gate.refused { border-color:var(--bad); } .gate.warned { border-color:var(--warn); }
+.bar { height:6px; background:var(--line); border-radius:3px; margin-top:20px; overflow:hidden; display:none; }
+.bar > i { display:block; height:100%; width:0; background:var(--accent); }
+#status { color:var(--mute); font-size:.95rem; margin-top:8px; min-height:1.5em; }
+.score { margin-top:24px; padding:20px; border:1px solid var(--line); border-radius:8px; background:var(--card); display:none; }
+.score b { font-size:2.4rem; }
+.note { color:var(--mute); font-size:.9rem; }
+ul#landed { padding-left:20px; }
+</style></head>
+<body><main>
+<h1>Prompt Cup</h1>
+<p class="lead">Write a system prompt for a tiny home assistant model, then see how many of 196 household commands it
+lands. The model, needle 3, runs in this tab. After the first download (about 36 MB) nothing leaves your machine.</p>
+<label for="prompt" class="note">Your prompt. It stands where Home Assistant's own opening lines stand; the home's
+device list and the live-context lines below it stay as the leaderboard gave them.</label>
+<textarea id="prompt" spellcheck="false"></textarea>
+<button id="go" disabled>Loading the model...</button>
+<div class="gate" id="gate"></div>
+<div class="bar" id="bar"><i></i></div>
+<div id="status"></div>
+<div class="score" id="score"></div>
+<script src="needle.js"></script>
+<script type="module">
+// The visitor's prompt replaces the member prompt in each of plain-1's 196 recorded system texts (every member's
+// text is its prompt, a newline, then the same "You ARE equipped..." context; build_replay.py), with plain-1's own
+// date fact, tools and command text. Each reply is scored by score.js against the leaderboard's own labels.
+import { loadNeedle } from "./engine.js";
+import { callsOf, label } from "./score.js";
+import { verdict } from "./nofacts.js";
+const $ = id => document.getElementById(id);
+const TAIL = "You ARE equipped";
+const q = new URLSearchParams(location.search);
+try {
+  const [doc, labels, home] = await Promise.all(["replay_plain-1.json", "labels.json", "home_names.json"]
+    .map(f => fetch(f).then(r => r.json())));
+  const body0 = doc.tasks[0].system.split("; ").slice(1).join("; ");
+  const plain = body0.slice(0, body0.indexOf(TAIL)).trimEnd();
+  $("prompt").value = q.get("prompt") ?? plain;
+  const n = await loadNeedle(".");
+  $("go").textContent = "Run 196 commands"; $("go").disabled = false;
+
+  async function run() {
+    const prompt = $("prompt").value.trimEnd();
+    const v = verdict(prompt, home), g = $("gate");
+    g.style.display = v.rows.length ? "block" : "none";
+    g.className = "gate " + (v.refused ? "refused" : "warned");
+    g.textContent = v.lines.join("\n");
+    if (v.refused) {
+      $("status").textContent = "Not run: this prompt names something peculiar to the test home, so it would score by knowing the answers.";
+      return { refused: true, exit: v.exit, lines: v.lines };
+    }
+    $("go").disabled = true; $("score").style.display = "none"; $("bar").style.display = "block";
+    const tasks = []; let good = 0, unseen = 0;
+    const t0 = performance.now();
+    for (const [i, t] of doc.tasks.entries()) {
+      const [date, ...rest] = t.system.split("; "), body = rest.join("; ");
+      const system = date + "; " + prompt + "\n" + body.slice(body.indexOf(TAIL));
+      let calls = [], err = null;
+      try { calls = callsOf(n.completeRaw(system, doc.toolsets[t.toolset], t.text)); } catch (e) { err = String(e); }
+      const lab = err ? "Bad" : label(labels, t.task_id, calls);
+      good += lab === "Good" ? 1 : 0; unseen += lab === null ? 1 : 0;
+      tasks.push({ task_id: t.task_id, text: t.text, calls: JSON.parse(JSON.stringify(calls, (k, x) => x && x.lit !== undefined ? Number(x.lit) : x)), label: lab, error: err });
+      $("bar").firstElementChild.style.width = ((i + 1) / doc.tasks.length * 100) + "%";
+      $("status").textContent = `${i + 1} of ${doc.tasks.length} commands, ${good} landed`;
+      if (i % 4 === 3) await new Promise(r => setTimeout(r));
+    }
+    const s = $("score"); s.style.display = "block";
+    const range = unseen ? `between <b>${good}</b> and ${good + unseen}` : `<b>${good}</b>`;
+    s.innerHTML = `<div>Landed ${range} of 196 commands.</div>
+      <p class="note">Home Assistant's own prompt lands 12. Authored prompts on the leaderboard landed between 8 and 16.
+      Every command is run four times and the four nearly always land together, so a lead of four is usually one command.
+      On these 49 commands, across the eight authored prompts tried, needle 3's result moved by at most three commands,
+      and a one-command lead can flip on the date line and the order of the tools.
+      ${unseen ? `${unseen} replies were calls no leaderboard run ever made, so they have no label; the count is a range until they do.` : ""}
+      This page and the leaderboard's engine break some near ties differently, and which ties come up depends on the
+      date line and the order of the tools: the page's own three runs of Home Assistant's prompt, whose inputs to the
+      model differ only in those, landed 12, 11 and 16. So read a score here as within one command (four runs) of the
+      leaderboard's, not exact. Your prompt runs in the default prompt's own recorded homes, date line and tool order
+      included: replayed in its own recorded run, P10 lands 16, as on the leaderboard; typed here, it lands 12.</p>
+      <p class="note">Landed:</p><ul id="landed"></ul>`;
+    for (const t of tasks.filter(t => t.label === "Good")) {
+      const li = document.createElement("li"); li.textContent = t.text; $("landed").append(li);
+    }
+    $("go").disabled = false; $("status").textContent = "";
+    return { refused: false, exit: v.exit, lines: v.lines, n: tasks.length, good, unseen,
+             seconds: Math.round((performance.now() - t0) / 100) / 10, tasks };
+  }
+  $("go").onclick = () => run();
+  if (q.has("auto")) window.RESULT = await run();
+} catch (e) {
+  $("status").textContent = "The page could not start: " + e;
+  window.RESULT = { page_error: String(e && e.stack || e) };
+}
+</script>
+</main></body></html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Replay</title></head>
+<body><pre id="log">loading</pre>
+<script src="needle.js"></script>
+<script type="module">
+// Replays every recorded turn of one run (?member=plain-1) through Needle in this tab and compares each call the
+// page makes with the call CI recorded for the same (system, tools, text). window.RESULT carries every task's
+// page calls, so the scorer and AT-4's second tab read the same object.
+import { loadNeedle } from "./engine.js";
+const canon = v => Array.isArray(v) ? v.map(canon) : (v && typeof v === "object")
+  ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canon(v[k])])) : v;
+const same = (a, b) => JSON.stringify(canon(a)) === JSON.stringify(canon(b));
+const log = document.getElementById("log");
+try {
+  const member = new URLSearchParams(location.search).get("member") || "plain-1";
+  const doc = await (await fetch(`replay_${member}.json`)).json();
+  const t0 = performance.now();
+  const n = await loadNeedle(".");
+  const tasks = [];
+  let match = 0;
+  for (const [i, t] of doc.tasks.entries()) {
+    let reply, err = null;
+    try { reply = n.complete(t.system, doc.toolsets[t.toolset], t.text); } catch (e) { err = String(e); }
+    const calls = reply && reply.type === "call" ? (reply.function_calls || []).map(c => ({ name: c.name, arguments: c.arguments || {} })) : [];
+    const ok = !err && same(calls, t.recorded_calls);
+    match += ok ? 1 : 0;
+    tasks.push({ task_id: t.task_id, calls, error: err, type: reply && reply.type, matches_recorded: ok });
+    if (i % 10 === 0) { log.textContent = `${i + 1}/${doc.tasks.length}, ${match} match`; console.log(log.textContent); }
+  }
+  window.RESULT = { member, n: tasks.length, match_recorded: match, seconds: Math.round((performance.now() - t0) / 100) / 10, tasks };
+} catch (e) { window.RESULT = { page_error: String(e && e.stack || e) }; }
+</script></body></html>
