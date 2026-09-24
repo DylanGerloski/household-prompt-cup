@@ -50,7 +50,7 @@ def main(path):
         print("  DIFFERS %s CI %s page %s" % d)
     if s["unseen"]:
         print("  score range %d..%d; %s" % (s["good"], s["good"] + len(s["unseen"]), "every UNSEEN is a task CI scored "
-              "Bad, so the Good ids still match CI (Architect #19957 item 1)" if not s["differ"] else "not a parity claim"))
+              "Bad, so the Good ids still match CI" if not s["differ"] else "not a parity claim"))
     return 0
 
 

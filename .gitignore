@@ -9,5 +9,5 @@ site/home_names.json
 site/labels.json
 site/nofacts_cases.json
 site/replay_*.json
-# readings quote the dataset's commands; they live in the private kiln repo, territories/smith/c53_readings/ (AT-6b)
+# readings quote the dataset's commands, and this repo holds no text taken from the dataset (AT-6b)
 readings/

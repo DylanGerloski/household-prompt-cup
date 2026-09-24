@@ -4,7 +4,7 @@
 
 1. NO NETWORK FALL-THROUGH. With no dataset in vendor/ and no DIR given, dataset.fetch() refuses and never opens a
    URL. Only cup.py passes net=True (its declared fetch at the pinned commit); a bare scan, punch or fill must not
-   download anything (Hearth #20011 item 3, after a bare scan in a fresh clone fetched 21 files by hand).
+   download anything (a bare scan in a fresh clone once fetched 21 files by hand).
 2. NO DATASET TEXT TRACKED. If vendor/assist-mini is present, `dataset.scan()` finds no dataset string of 8+
    characters in any tracked file. Without vendor/ this check says SKIPPED, never PASS.
 """

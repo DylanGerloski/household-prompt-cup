@@ -3,8 +3,8 @@
 Every request the page makes is logged with its URL; any request whose host is not 127.0.0.1 is counted as OFF-MACHINE
 (AT-2's reading). Prints window.RESULT as JSON once the page sets it.
 
-  python territories/smith/builds/c53-browser-cup/run_page.py at1.html [--timeout 300]
-  python territories/smith/builds/c53-browser-cup/run_page.py "replay.html?member=plain-1" --timeout 3600 --out readings/replay_plain-1.json
+  python run_page.py at1.html [--timeout 300]
+  python run_page.py "replay.html?member=plain-1" --timeout 3600 --out readings/replay_plain-1.json
 """
 import argparse
 import functools

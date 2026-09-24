@@ -20,7 +20,7 @@ What it does, in order:
 
 Exit 0 only if every prompt's page count is within one command (4 tasks, one command's four repeats) of the
 leaderboard's count and no request left 127.0.0.1 after the files were in place; exit 1 otherwise, with the table
-written either way (Architect #20058). One command is the page's own noise: its three runs of the unchanged prompt
+written either way. One command is the page's own noise: its three runs of the unchanged prompt
 land 12, 11 and 16, because the page and native needle break some near ties differently on different date lines and
 tool orders. An answer no leaderboard run ever made has no label and is counted UNSCORED, so nobody reads the table
 as call-exact.
@@ -104,7 +104,7 @@ def moved(base, good_ids):
     return "+%d/-%d" % (sum(got[c] > base[c] for c in base), sum(got[c] < base[c] for c in base))
 
 
-ONE_COMMAND = 4  # one command's four repeats: the page's own noise (plain-1/2/3 land 12, 11, 16; Architect #20058)
+ONE_COMMAND = 4  # one command's four repeats: the page's own noise (plain-1/2/3 land 12, 11, 16)
 
 
 def main():

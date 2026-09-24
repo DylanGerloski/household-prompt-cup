@@ -1,8 +1,8 @@
-"""The same replay as site/replay.html, through the Python cactus-needle wrapper on this box (c59/.venv, 3.0.4;
+"""The same replay as site/replay.html, through the Python cactus-needle wrapper (cactus-needle 3.0.4;
 CI ran 3.0.1). Used only to triangulate a page/record gap: if Python reproduces the record where the page does
 not, the page is wrong; if neither does, the rebuilt input is. Telemetry is off (NEEDLE_TELEMETRY=0), as CI's CI=1
 had it.
-  ../../c59/.venv/Scripts/python py_replay.py --member plain-1 [--limit N]
+  python py_replay.py --member plain-1 [--limit N]
 """
 import argparse
 import json

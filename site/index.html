@@ -63,7 +63,8 @@ try {
     g.style.display = v.rows.length ? "block" : "none";
     g.className = "gate " + (v.refused ? "refused" : "warned");
     // nofacts.js's UNDECIDED line is the rule's own note on who decides it, not something a visitor can use.
-    const lines = v.lines.filter(l => !l.startsWith("UNDECIDED:"));
+    // Its FAIL line names who ruled the rule; the status line below already says why a refused prompt did not run.
+    const lines = v.lines.filter(l => !l.startsWith("UNDECIDED:") && !l.startsWith("FAIL:"));
     if (v.exit === 2) lines.push("This prompt uses a word that is also a kind of device in the test home, such as lock or light. It runs; a word naming one of the home's own devices or rooms would not.");
     g.textContent = lines.join("\n");
     if (v.refused) {

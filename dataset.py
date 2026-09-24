@@ -1,4 +1,4 @@
-"""The assist-mini dataset, fetched and never committed (spec AT-6b, Architect #19992).
+"""The assist-mini dataset, fetched and never committed (spec AT-6b).
 
 allenporter/home-assistant-datasets carries no licence, so this repo holds no file taken from it. The page's data
 files (site/replay_*.json, labels.json, home_names.json, nofacts_cases.json) are committed as SKELETONS under data/:
