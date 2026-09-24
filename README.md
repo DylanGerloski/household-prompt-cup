@@ -12,7 +12,8 @@ of its runs; against it, six of the eight authored prompts move one command up o
 one-command lead can flip on the date line and the order of the tools, bytes a prompt's author does not write.
 Replayed in its own recorded run, P10 lands 16, as on the leaderboard; typed into the page, which uses the default
 prompt's recorded run, it lands 12. RESULTS.md prints, beside each prompt's 196-command score, how many commands it
-moved up and down against plain-1.
+moved up and down against plain-1. That column counts the page's own landed commands, not the leaderboard's, so it
+can read one command away from the moves above: P7 and P12 read two there.
 
 ## One command
 
