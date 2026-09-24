@@ -9,18 +9,21 @@ plus Unicode and punctuation edges. Each case carries the Python file's own verd
 fixtures, span) and its exit code and last printed line. nofacts_check.html runs the same cases through
 site/nofacts.js and refuses on any difference.
 
-  python build_nofacts.py
+It reads the harness's prompt_carries_no_facts.py from --gate and the scored prompts (prompts_v1.json,
+prompts_v2.json) from --prompts; neither folder ships with this repo.
+
+  python build_nofacts.py --gate DIR --prompts DIR
 """
+import argparse
+import importlib
 import io
 import json
 import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-GATE = os.path.normpath(os.path.join(HERE, "..", "..", "hometiny-run"))
-FORGE = os.path.normpath(os.path.join(HERE, "..", "..", "..", "forge", "needle53"))
-sys.path.insert(0, GATE)
-import prompt_carries_no_facts as gate  # noqa: E402
+PROMPTS_DIR = None  # set from --prompts in main()
+gate = None  # prompt_carries_no_facts, imported from --gate in main()
 
 
 def verdict(text, spec, dom):
@@ -35,7 +38,7 @@ def verdict(text, spec, dom):
 def cases(spec, dom):
     texts = []
     for f in ("prompts_v1.json", "prompts_v2.json"):
-        with open(os.path.join(FORGE, f), encoding="utf-8") as h:
+        with open(os.path.join(PROMPTS_DIR, f), encoding="utf-8") as h:
             texts += [("forge/%s/%s" % (f, p["id"]), p["text"]) for p in json.load(h)["prompts"]]
     # the gate's own selftest texts; the home's one vacuum is read from the home, not written here (AT-6b)
     vac = next(k for k in spec if k.startswith("vacuum."))
@@ -56,6 +59,14 @@ def cases(spec, dom):
 
 
 def main():
+    global gate, PROMPTS_DIR
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--gate", required=True, help="the folder holding prompt_carries_no_facts.py")
+    ap.add_argument("--prompts", required=True, help="the folder holding prompts_v1.json and prompts_v2.json")
+    a = ap.parse_args()
+    GATE_DIR, PROMPTS_DIR = os.path.abspath(a.gate), os.path.abspath(a.prompts)
+    sys.path.insert(0, GATE_DIR)
+    gate = importlib.import_module("prompt_carries_no_facts")
     spec, dom = gate.home_names()
     with open(os.path.join(HERE, "site", "home_names.json"), "w", encoding="utf-8") as h:
         json.dump({"specific": list(spec.items()), "domain": list(dom.items()),
