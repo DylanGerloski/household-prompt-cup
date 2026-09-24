@@ -63,6 +63,13 @@ strings back from the dataset itself at commit 45e9ac2e, and writes nothing unle
 in `data/pins.json`. `python dataset.py scan` exits 1 if any tracked file carries a dataset string of eight or more
 characters.
 
+## The Home Assistant component
+
+`custom_components/hometiny_needle/` is the conversation agent the leaderboard runs used to put needle 3 in Home Assistant.
+It needs `cactus-needle` 3.0.1, which Home Assistant installs from the component's manifest.
+To add it, copy the `hometiny_needle` folder into your Home Assistant config's `custom_components/` folder, restart, and add it as an integration.
+It passes Assist's own system prompt and tools to the model unchanged.
+
 ## Files
 
 - `site/replay.html`, `site/engine.js`: the page and the needle calls (load once, init and complete per command).

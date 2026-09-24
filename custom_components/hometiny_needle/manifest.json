@@ -1,0 +1,11 @@
+{
+  "domain": "hometiny_needle",
+  "name": "HomeTiny Needle 3 conversation agent",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": ["conversation"],
+  "documentation": "https://github.com/cactus-compute/needle",
+  "iot_class": "local_polling",
+  "requirements": ["cactus-needle==3.0.1"],
+  "version": "0.1.0"
+}
