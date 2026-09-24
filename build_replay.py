@@ -10,8 +10,11 @@ vendor/ha), and probatio 0.11.4 renders it. Needle then received json.dumps(tool
 a system text prefixed by needle._with_date_fact from the runner clock; both are reproduced here, the date from
 the task's own async_process stamp (UTC runner), and a task whose turn straddles a minute is marked.
 
-  .venv/Scripts/python build_replay.py --member plain-1
-Writes site/replay_<member>.json. Reads the kiln tree's variance_runs; writes nothing there.
+It reads the scored runs (one folder per member, plus scored/<member>.csv) from --runs; that folder does not ship
+with this repo.
+
+  .venv/Scripts/python build_replay.py --runs DIR --member plain-1
+Writes site/replay_<member>.json; writes nothing under --runs.
 """
 import argparse
 import csv
@@ -30,7 +33,7 @@ import voluptuous as vol  # noqa: E402  (probatio, as HA 2026.9.2 imports it)
 from probatio import UNSUPPORTED, to_openapi  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-RUNS = os.path.normpath(os.path.join(HERE, "..", "..", "hometiny-run", "variance_runs", "c53-needle3-prompt-v2"))
+RUNS = None
 
 
 # Stand-ins with HA 2026.9.2's own signatures (probatio renders an unhandled callable by its first parameter's hint).
@@ -172,8 +175,11 @@ def build(member):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--runs", required=True, help="the scored runs folder (not shipped with this repo)")
     ap.add_argument("--member", required=True)
     a = ap.parse_args()
+    global RUNS
+    RUNS = os.path.abspath(a.runs)
     doc = build(a.member)
     out = os.path.join(HERE, "site", "replay_%s.json" % a.member)
     with open(out, "w", encoding="utf-8") as f:
