@@ -62,10 +62,13 @@ try {
     const v = verdict(prompt, home), g = $("gate");
     g.style.display = v.rows.length ? "block" : "none";
     g.className = "gate " + (v.refused ? "refused" : "warned");
-    g.textContent = v.lines.join("\n");
+    // nofacts.js's UNDECIDED line is the rule's own note on who decides it, not something a visitor can use.
+    const lines = v.lines.filter(l => !l.startsWith("UNDECIDED:"));
+    if (v.exit === 2) lines.push("This prompt uses a word that is also a kind of device in the test home, such as lock or light. It runs; a word naming one of the home's own devices or rooms would not.");
+    g.textContent = lines.join("\n");
     if (v.refused) {
       $("status").textContent = "Not run: this prompt names something peculiar to the test home, so it would score by knowing the answers.";
-      return { refused: true, exit: v.exit, lines: v.lines };
+      return { refused: true, exit: v.exit, lines };
     }
     $("go").disabled = true; $("score").style.display = "none"; $("bar").style.display = "block";
     const tasks = []; let good = 0, unseen = 0;
@@ -100,7 +103,7 @@ try {
       const li = document.createElement("li"); li.textContent = t.text; $("landed").append(li);
     }
     $("go").disabled = false; $("status").textContent = "";
-    return { refused: false, exit: v.exit, lines: v.lines, n: tasks.length, good, unseen,
+    return { refused: false, exit: v.exit, lines, n: tasks.length, good, unseen,
              seconds: Math.round((performance.now() - t0) / 100) / 10, tasks };
   }
   $("go").onclick = () => run();
