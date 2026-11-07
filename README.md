@@ -55,7 +55,7 @@ file on 994 cases by site/nofacts_check.html), and refuses such a prompt with th
 
 ## The dataset is not in this repo
 
-[allenporter/home-assistant-datasets](https://github.com/allenporter/home-assistant-datasets) carries no licence, so
+[allenporter/home-assistant-datasets](https://github.com/allenporter/home-assistant-datasets) is the source of the assist-mini task files. Its owner licensed them under Apache 2.0 and allowed fetching them at a pinned commit, https://github.com/allenporter/home-assistant-datasets/issues/344#issuecomment-5985704449, and
 this repo commits nothing taken from it and does not redistribute it: `cup.py` fetches it from GitHub at the
 leaderboard's pinned commit 45e9ac2e into `vendor/`, which is not committed, and uses it there. The recorded runs are committed as skeletons (`data/*.skel`): the files with
 every string the dataset holds cut out and replaced by a numbered hole. `dataset.py fill` (run by `cup.py`) puts the
